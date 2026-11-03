@@ -1,0 +1,43 @@
+services:
+  mysql:
+    image: 'mysql:8.4'
+    environment:
+      MYSQL_DATABASE: minimartdb
+      MYSQL_PASSWORD: technicaltest_2026
+      MYSQL_ROOT_PASSWORD: bismillah
+      MYSQL_USER: TheMekanik
+    ports:
+      - "3308:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-u",
+          "root",
+          "-pbismillah"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: minimart-app
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "8080:8080"
+
+volumes:
+  mysql-data:

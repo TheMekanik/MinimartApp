@@ -1,0 +1,108 @@
+CREATE TABLE IF NOT EXISTS provinces (
+	id INT(2) PRIMARY KEY NOT NULL
+	name VARCHAR(100) NOT NULL,
+	UNIQUE KEY province_name (name)
+);
+
+CREATE TABLE IF NOT EXISTS branches (
+	id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+	province_id INT(2) NOT NULL,
+	branch_code VARCHAR(30) NOT NULL,
+	branch_name VARCHAR(100) NOT NULL,
+	is_active BOOLEAN NOT NULL DEFAULT TRUE,
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
+	created_by VARCHAR(50) DEFAULT NULL,
+	updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP() ON UPDATE CURRENT_TIMESTAMP(),
+	updated_by VARCHAR(50) DEFAULT NULL,
+	deleted_at TIMESTAMP DEFAULT NULL,
+
+	UNIQUE KEY unique_branch_code (branch_code),
+	KEY idx_branch_filter(
+		province_id, is_active, deleted_at
+	),
+
+	CONSTRAINT fk_province_id FOREIGN KEY (province_id) REFERENCES provinces (id) ON UPDATE CASCADE ON DELETE RESTRICT
+);
+
+CREATE TABLE IF NOT EXISTS stores (
+	id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+	branch_id INT NOT NULL,
+	store_name VARCHAR(150) NOT NULL,
+	store_code VARCHAR(30) NOT NULL,
+	is_active BOOLEAN NOT NULL DEFAULT TRUE,
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
+	created_by VARCHAR(30) DEFAULT NULL,
+	updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP() ON UPDATE CURRENT_TIMESTAMP(),
+	updated_by VARCHAR(30) DEFAULT NULL,
+	deleted_at TIMESTAMP DEFAULT NULL,
+
+	UNIQUE KEY idx_store_code (store_code),
+	KEY idx_store_filter (
+		branch_id,
+		is_active,
+		deleted_at
+	),
+
+	CONSTRAINT fk_branch_id FOREIGN KEY (branch_id) REFERENCES branches (id) ON UPDATE CASCADE ON DELETE RESTRICT
+);
+
+
+CREATE TABLE IF NOT EXISTS users (
+	id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+	username VARCHAR(100) NOT NULL,
+	password VARCHAR(255) NOT NULL,
+	email VARCHAR(50) NOT NULL,
+	access_token VARCHAR(255) DEFAULT NULL,
+	refresh_token VARCHAR(255) DEFAULT NULL,
+	refresh_token_expiry TIMESTAMP DEFAULT NULL,
+	last_login_at TIMESTAMP DEFAULT NULL,
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
+	updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP() ON UPDATE CURRENT_TIMESTAMP(),
+	deleted_at TIMESTAMP DEFAULT NULL,
+
+	UNIQUE KEY idx_username (username),
+	UNIQUE KEY idx_user_email (email)
+);
+
+
+CREATE TABLE IF NOT EXISTS roles (
+	id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+	role_name VARCHAR(50) NOT NULL,
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
+	updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP() ON UPDATE CURRENT_TIMESTAMP(),
+	UNIQUE KEY unique_role_name (role_name)
+);
+
+
+CREATE TABLE IF NOT EXISTS user_roles (
+	id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+	user_id INT NOT NULL,
+	role_id INT NOT NULL,
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
+	UNIQUE KEY idx_user_role (user_id, role_id),
+
+	CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+	CONSTRAINT fk_role_id FOREIGN KEY (role_id) REFERENCES roles (id) ON DELETE CASCADE
+);
+
+
+CREATE TABLE IF NOT EXISTS permissions (
+	id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+	permission_name VARCHAR(30) NOT NULL,
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
+	updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP() ON UPDATE CURRENT_TIMESTAMP(),
+
+	UNIQUE KEY idx_permission_code (permission_name)
+);
+
+
+CREATE TABLE IF NOT EXISTS permission_roles (
+	id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+	permission_id INT NOT NULL,
+	role_id INT NOT NULL,
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
+	UNIQUE KEY idx_role_permission (permission_id, role_id),
+
+	CONSTRAINT fk_permission_id FOREIGN KEY (permission_id) REFERENCES permissions (id) ON DELETE CASCADE,
+	CONSTRAINT fk_user_role_id FOREIGN KEY (role_id) REFERENCES roles (id) ON DELETE CASCADE
+);
