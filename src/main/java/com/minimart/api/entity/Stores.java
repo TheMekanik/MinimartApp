@@ -33,4 +33,6 @@ public class Stores extends BaseEntity {
     @JoinColumn(name = "branch_id", nullable = false)
     private Branches branch;
 
+    @OneToOne(mappedBy = "store")
+    private StoreWhitelists whitelists;
 }

@@ -16,12 +16,14 @@ public interface StoreRepository extends JpaRepository<Stores, Long> {
             FROM Stores s
             JOIN s.branch b
             JOIN b.province p
+            LEFT JOIN s.whitelists w
             WHERE s.deletedAt IS NULL
             AND b.deletedAt IS NULL
             AND b.isActive = true
             AND (:isActive IS NULL OR s.isActive = :isActive)
             AND (
                 :provinceName IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :provinceName, '%'))
+                OR (w.id IS NOT NULL AND s.isActive = true)
             )
             """)
     Page<Stores> findActiveStores(Boolean isActive, String provinceName, Pageable pageable);

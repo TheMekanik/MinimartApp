@@ -106,3 +106,12 @@ CREATE TABLE IF NOT EXISTS permission_roles (
 	CONSTRAINT fk_permission_id FOREIGN KEY (permission_id) REFERENCES permissions (id) ON DELETE CASCADE,
 	CONSTRAINT fk_user_role_id FOREIGN KEY (role_id) REFERENCES roles (id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS store_whitelists (
+	id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+	store_id INT NOT NULL,
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
+	created_by VARCHAR(30) DEFAULT NULL,
+	UNIQUE unique_store_id (store_id),
+	CONSTRAINT fk_store_id FOREIGN KEY (store_id) REFERENCES stores (id)
+);

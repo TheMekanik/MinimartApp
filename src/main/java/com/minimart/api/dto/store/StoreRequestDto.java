@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 
 public record StoreRequestDto(
         Long id,
-        @NotBlank(message = "Branch id is required")
+        @NotNull(message = "Branch id is required")
         Long branch_id,
 
         @NotBlank(message = "Store name is required")
