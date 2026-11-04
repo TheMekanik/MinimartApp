@@ -11,7 +11,8 @@ public class PublicPathConfig {
     @Bean
     public List<String> publicPaths() {
         return List.of(
-                "/api/v1/auth/login"
+                "/api/v1/auth/login",
+                "/api/v1/auth/refresh-token"
         );
     }
 

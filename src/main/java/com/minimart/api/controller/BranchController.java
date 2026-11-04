@@ -23,7 +23,7 @@ public class BranchController {
 
     @PostMapping("")
     @PreAuthorize("hasAuthority('BRANCH_CREATE')")
-    public ResponseEntity<ApiResponseDto<Void>> createBranch(BranchRequestDto request) {
+    public ResponseEntity<ApiResponseDto<Void>> createBranch(@Valid @RequestBody BranchRequestDto request) {
         branchService.createBranch(request);
 
         return ResponseEntity.ok().body(
@@ -85,7 +85,7 @@ public class BranchController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('BRANCH_VIEW')")
-    public ResponseEntity<ApiResponseDto<BranchResponseDto>> getBranch(Long id) {
+    public ResponseEntity<ApiResponseDto<BranchResponseDto>> getBranch(@PathVariable Long id) {
 
         BranchResponseDto branch = branchService.getBranch(id);
 

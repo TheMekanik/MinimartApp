@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface BranchRepository extends JpaRepository<Branches, Long> {
 
@@ -17,4 +18,21 @@ public interface BranchRepository extends JpaRepository<Branches, Long> {
             AND (:isActive IS NULL OR b.isActive = :isActive)
             """)
     Page<Branches> findActiveBranches(Boolean isActive, Pageable pageable);
+
+    @Query("""
+            SELECT b
+            FROM Branches b
+            WHERE b.id = :id
+            AND b.deletedAt IS NULL
+            AND b.isActive = true
+            """)
+    Optional<Branches> findVisibleById(Long id);
+
+    @Query("""
+            SELECT b
+            FROM Branches b
+            WHERE b.id = :id
+            AND b.deletedAt IS NULL
+            """)
+    Optional<Branches> findEditableById(Long id);
 }

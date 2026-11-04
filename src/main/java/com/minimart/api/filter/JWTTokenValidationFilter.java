@@ -24,6 +24,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @RequiredArgsConstructor
 public class JWTTokenValidationFilter extends OncePerRequestFilter {
@@ -39,7 +40,11 @@ public class JWTTokenValidationFilter extends OncePerRequestFilter {
         String authHeader = request.getHeader("Authorization");
         if (authHeader != null) {
             try {
-                String jwt = authHeader.substring(7);
+                if (!authHeader.startsWith("Bearer ") || authHeader.length() <= 7) {
+                    throw new BadCredentialsException("Invalid Authorization header");
+                }
+
+                String jwt = authHeader.substring(7).trim();
 
                 Claims claims = Jwts.parser().verifyWith(jwtUtil.getSecretKey()).build().parseSignedClaims(jwt).getPayload();
 
@@ -47,10 +52,17 @@ public class JWTTokenValidationFilter extends OncePerRequestFilter {
                 List<String> roles = claims.get("roles", List.class);
                 List<String> permissions = claims.get("permissions", List.class);
                 Long id = claims.get("id", Long.class);
+                if (username == null || id == null || !"minimart".equals(claims.getIssuer())) {
+                    throw new BadCredentialsException("Required token claims are missing");
+                }
 
-                Users user = usersRepository.findById(id).orElseThrow(null);
+                Users user = usersRepository.findById(id).orElseThrow(
+                        () -> new BadCredentialsException("User not found")
+                );
 
-                if (!user.getAccessToken().equals(jwt) || user.getAccessToken() == null) {
+                if (user.getDeletedAt() != null
+                        || !Objects.equals(user.getUsername(), username)
+                        || !Objects.equals(user.getAccessToken(), jwt)) {
                     throw new BadCredentialsException("Access denied.");
                 }
 

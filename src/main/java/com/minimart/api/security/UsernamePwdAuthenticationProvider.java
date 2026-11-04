@@ -12,7 +12,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import java.util.ArrayList;
@@ -33,14 +32,14 @@ public class UsernamePwdAuthenticationProvider implements AuthenticationProvider
         String pwd = authentication.getCredentials().toString();
         Users users = usersRepository.findByEmail(username).orElseGet(
                 () -> usersRepository.findByUsername(username).orElseThrow(
-                        () -> new UsernameNotFoundException(
-                                "Nama pengguna tidak ditemukan : " + username
-                        )
+                        () -> new BadCredentialsException("Invalid credentials")
                 )
         );
 
-        if (!passwordEncoder.matches(pwd, users.getPassword())) {
-            throw new BadCredentialsException("Invalid Password");
+        if (users.getDeletedAt() != null
+                || users.getPassword() == null
+                || !passwordEncoder.matches(pwd, users.getPassword())) {
+            throw new BadCredentialsException("Invalid credentials");
         }
 
         Set<Roles> roles = users.getRoles();

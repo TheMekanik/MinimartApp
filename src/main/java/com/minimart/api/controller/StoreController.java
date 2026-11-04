@@ -85,7 +85,7 @@ public class StoreController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('STORE_VIEW')")
-    public ResponseEntity<ApiResponseDto<StoreResponseDto>> getStore(Long id) {
+    public ResponseEntity<ApiResponseDto<StoreResponseDto>> getStore(@PathVariable Long id) {
         StoreResponseDto storeDto = storeService.getStore(id);
 
         return ResponseEntity.ok().body(

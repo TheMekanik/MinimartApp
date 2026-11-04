@@ -11,6 +11,7 @@ import com.minimart.api.repository.BranchRepository;
 import com.minimart.api.repository.ProvinceRepository;
 import com.minimart.api.service.IBranchService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -18,30 +19,44 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class BranchServiceImpl implements IBranchService {
 
     private final BranchRepository branchRepository;
     private final ProvinceRepository provinceRepository;
 
     @Override
+    @Transactional
     public void createBranch(BranchRequestDto request) {
+        Provinces province = provinceRepository.findById(request.province_id()).orElseThrow(
+                () -> new AppException(
+                        HttpStatus.NOT_FOUND,
+                        HttpStatus.NOT_FOUND.getReasonPhrase(),
+                        "Province data for province_id not found"
+                )
+        );
+
         Branches branch = new Branches();
+        branch.setProvince(province);
         branch.setBranchCode(request.branch_code());
         branch.setBranchName(request.branch_name());
         branch.setIsActive(request.is_active());
 
         branchRepository.save(branch);
+        log.info("Branch created: branchId={}", branch.getId());
     }
 
     @Override
+    @Transactional
     public void updateBranch(Long id, BranchRequestDto request) {
-        Branches branch = branchRepository.findById(id).orElseThrow(
+        Branches branch = branchRepository.findEditableById(id).orElseThrow(
                 () -> new AppException(
                         HttpStatus.NOT_FOUND,
                         HttpStatus.NOT_FOUND.getReasonPhrase(),
@@ -64,11 +79,13 @@ public class BranchServiceImpl implements IBranchService {
         branch.setBranchCode(request.branch_code());
         branch.setBranchName(request.branch_name());
         branch.setIsActive(request.is_active());
+        branchRepository.save(branch);
+        log.info("Branch updated: branchId={}", branch.getId());
     }
 
     @Override
     public void deleteBranch(Long id) {
-        Branches branch = branchRepository.findById(id).orElseThrow(
+        Branches branch = branchRepository.findEditableById(id).orElseThrow(
                 () -> new AppException(
                         HttpStatus.NOT_FOUND,
                         HttpStatus.NOT_FOUND.getReasonPhrase(),
@@ -78,10 +95,19 @@ public class BranchServiceImpl implements IBranchService {
 
         branch.setDeletedAt(Instant.now());
         branchRepository.save(branch);
+        log.info("Branch soft-deleted: branchId={}", branch.getId());
     }
 
     @Override
     public BranchesResponseDto getBranches(int pageNumber, int pageSize, Boolean isActive) {
+        if (pageNumber < 1 || pageSize < 1 || pageSize > 100) {
+            throw new AppException(
+                    HttpStatus.BAD_REQUEST,
+                    HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                    "pageNumber must be at least 1 and pageSize must be between 1 and 100"
+            );
+        }
+
         int pageIndex = Math.max(0, pageNumber - 1);
         Pageable pageable = PageRequest.of(pageIndex, pageSize, Sort.by(
                 Sort.Order.asc("province.id"),
@@ -131,7 +157,7 @@ public class BranchServiceImpl implements IBranchService {
 
     @Override
     public BranchResponseDto getBranch(Long id) {
-        Branches branch = branchRepository.findById(id).orElseThrow(
+        Branches branch = branchRepository.findVisibleById(id).orElseThrow(
                 () -> new AppException(
                         HttpStatus.NOT_FOUND,
                         HttpStatus.NOT_FOUND.getReasonPhrase(),

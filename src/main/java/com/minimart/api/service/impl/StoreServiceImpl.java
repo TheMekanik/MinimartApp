@@ -11,26 +11,30 @@ import com.minimart.api.repository.BranchRepository;
 import com.minimart.api.repository.StoreRepository;
 import com.minimart.api.service.IStoreService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class StoreServiceImpl implements IStoreService {
 
     private final StoreRepository storeRepository;
     private final BranchRepository branchRepository;
 
     @Override
+    @Transactional
     public void createStore(StoreRequestDto request) {
-        Branches branch = branchRepository.findById(request.branch_id()).orElseThrow(
+        Branches branch = branchRepository.findVisibleById(request.branch_id()).orElseThrow(
                 () -> new AppException(
                         HttpStatus.NOT_FOUND,
                         HttpStatus.NOT_FOUND.getReasonPhrase(),
@@ -45,11 +49,13 @@ public class StoreServiceImpl implements IStoreService {
         store.setIsActive(request.is_active());
 
         storeRepository.save(store);
+        log.info("Store created: storeId={}", store.getId());
     }
 
     @Override
+    @Transactional
     public void updateStore(Long id, StoreRequestDto request) {
-        Stores store = storeRepository.findById(id).orElseThrow(
+        Stores store = storeRepository.findEditableById(id).orElseThrow(
                 () ->  new AppException(
                         HttpStatus.NOT_FOUND,
                         HttpStatus.NOT_FOUND.getReasonPhrase(),
@@ -58,7 +64,7 @@ public class StoreServiceImpl implements IStoreService {
         );
 
         if (!store.getBranch().getId().equals(request.branch_id())) {
-            Branches storeBranch = branchRepository.findById(request.branch_id()).orElseThrow(
+            Branches storeBranch = branchRepository.findVisibleById(request.branch_id()).orElseThrow(
                     () -> new AppException(
                             HttpStatus.NOT_FOUND,
                             HttpStatus.NOT_FOUND.getReasonPhrase(),
@@ -74,11 +80,12 @@ public class StoreServiceImpl implements IStoreService {
         store.setIsActive(request.is_active());
 
         storeRepository.save(store);
+        log.info("Store updated: storeId={}", store.getId());
     }
 
     @Override
     public void deleteStore(Long id) {
-        Stores store = storeRepository.findById(id).orElseThrow(
+        Stores store = storeRepository.findEditableById(id).orElseThrow(
                 () -> new AppException(
                         HttpStatus.NOT_FOUND,
                         HttpStatus.NOT_FOUND.getReasonPhrase(),
@@ -88,10 +95,19 @@ public class StoreServiceImpl implements IStoreService {
 
         store.setDeletedAt(Instant.now());
         storeRepository.save(store);
+        log.info("Store soft-deleted: storeId={}", store.getId());
     }
 
     @Override
     public StoresResponseDto getStores(int pageNumber, int pageSize, Boolean isActive, String provinceName) {
+        if (pageNumber < 1 || pageSize < 1 || pageSize > 100) {
+            throw new AppException(
+                    HttpStatus.BAD_REQUEST,
+                    HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                    "pageNumber must be at least 1 and pageSize must be between 1 and 100"
+            );
+        }
+
         int pageIndex = Math.max(0, pageNumber - 1);
         Pageable pageable = PageRequest.of(pageIndex, pageSize, Sort.by(
            Sort.Order.asc("branch.id"),
@@ -142,7 +158,7 @@ public class StoreServiceImpl implements IStoreService {
 
     @Override
     public StoreResponseDto getStore(Long id) {
-        Stores store = storeRepository.findById(id).orElseThrow(
+        Stores store = storeRepository.findVisibleById(id).orElseThrow(
                 () -> new AppException(
                         HttpStatus.NOT_FOUND,
                         HttpStatus.NOT_FOUND.getReasonPhrase(),

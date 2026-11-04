@@ -14,7 +14,8 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.BeanUtils;
+import lombok.extern.slf4j.Slf4j;
+import io.jsonwebtoken.JwtException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -23,6 +24,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -31,6 +33,7 @@ import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthServiceImpl implements IAuthService {
 
     private final AuthenticationManager authenticationManager;
@@ -38,6 +41,7 @@ public class AuthServiceImpl implements IAuthService {
     private final UsersRepository usersRepository;
 
     @Override
+    @Transactional
     public LoginResponseDto login(LoginRequestDto request) {
 
         String loginIdentifier = request.username();
@@ -46,11 +50,18 @@ public class AuthServiceImpl implements IAuthService {
                 loginIdentifier, request.password()
         ));
 
-        var dto = new LoginResponseDto();
         var loggedInUser = (Users) authentication.getPrincipal();
-        BeanUtils.copyProperties(loggedInUser, dto);
-
-        Users user = usersRepository.findById(loggedInUser.getId()).orElseThrow(null);
+        Users user = usersRepository.findById(loggedInUser.getId()).orElseThrow(
+                () -> new AppException(
+                        HttpStatus.UNAUTHORIZED,
+                        HttpStatus.UNAUTHORIZED.getReasonPhrase(),
+                        "User is not available"
+                )
+        );
+        var dto = new LoginResponseDto();
+        dto.setUser_id(user.getId());
+        dto.setUsername(user.getUsername());
+        dto.setEmail(user.getEmail());
 
         List<String> roles = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
@@ -62,7 +73,6 @@ public class AuthServiceImpl implements IAuthService {
                 .filter(auth -> !auth.startsWith("ROLE_"))
                 .toList();
 
-        dto.setUser_id(user.getId());
         dto.setRoles(roles);
         dto.setPermissions(permissions);
 
@@ -78,29 +88,42 @@ public class AuthServiceImpl implements IAuthService {
         user.setLastLoginAt(Instant.now());
 
         usersRepository.save(user);
+        log.info("User logged in successfully: userId={}", user.getId());
 
         return dto;
     }
 
     @Override
+    @Transactional
     public RefreshTokenResponseDto refreshToken(HttpServletRequest request) {
         try {
-            String authHeader = request.getHeader("Authorization");
-            String jwt = authHeader.substring(7);
+            String jwt = extractBearerToken(request);
 
             Claims claims = Jwts.parser().verifyWith(jwtUtil.getSecretKey()).build().parseSignedClaims(jwt).getPayload();
             Long id = claims.get("id", Long.class);
+            if (id == null || !"minimart".equals(claims.getIssuer())) {
+                throw new AppException(
+                        HttpStatus.UNAUTHORIZED,
+                        HttpStatus.UNAUTHORIZED.getReasonPhrase(),
+                        "Invalid refresh token"
+                );
+            }
 
             Users existingUser = usersRepository.findById(id).orElseThrow(
-                    () -> new AppException(HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.getReasonPhrase(), "User not found.")
+                    () -> new AppException(HttpStatus.UNAUTHORIZED, HttpStatus.UNAUTHORIZED.getReasonPhrase(), "Invalid refresh token")
             );
 
             String existingRefreshToken = existingUser.getRefreshToken();
 
-            if (existingRefreshToken == null || existingUser.getRefreshTokenExpiry().isBefore(Instant.now())) {
+            if (existingUser.getDeletedAt() != null
+                    || existingRefreshToken == null
+                    || !existingRefreshToken.equals(jwt)
+                    || existingUser.getRefreshTokenExpiry() == null
+                    || existingUser.getRefreshTokenExpiry().isBefore(Instant.now())) {
                 existingUser.setRefreshToken(null);
                 existingUser.setRefreshTokenExpiry(null);
                 usersRepository.save(existingUser);
+                log.info("Access and refresh tokens rotated: userId={}", existingUser.getId());
                 throw new AppException(
                         HttpStatus.UNAUTHORIZED,
                         HttpStatus.UNAUTHORIZED.getReasonPhrase(),
@@ -135,7 +158,7 @@ public class AuthServiceImpl implements IAuthService {
             usersRepository.save(existingUser);
 
             return new RefreshTokenResponseDto(newAccessToken, newRefreshToken);
-        } catch (BadCredentialsException ex) {
+        } catch (JwtException | IllegalArgumentException | BadCredentialsException ex) {
             throw new AppException(
                     HttpStatus.UNAUTHORIZED,
                     HttpStatus.UNAUTHORIZED.getReasonPhrase(),
@@ -147,15 +170,13 @@ public class AuthServiceImpl implements IAuthService {
     @Override
     public void logout(HttpServletRequest request) {
         try {
-            System.out.println("Im hit");
-            String authHeader = request.getHeader("Authorization");
-            String jwt = authHeader.substring(7);
+            String jwt = extractBearerToken(request);
 
             Claims claims = Jwts.parser().verifyWith(jwtUtil.getSecretKey()).build().parseSignedClaims(jwt).getPayload();
             Long id = claims.get("id", Long.class);
 
             Users loggedInUser = usersRepository.findById(id).orElseThrow(
-                    () -> new AppException(HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.getReasonPhrase(), "User not found.")
+                    () -> new AppException(HttpStatus.UNAUTHORIZED, HttpStatus.UNAUTHORIZED.getReasonPhrase(), "Invalid token")
             );
 
             loggedInUser.setAccessToken(null);
@@ -163,13 +184,22 @@ public class AuthServiceImpl implements IAuthService {
             loggedInUser.setRefreshTokenExpiry(null);
 
             usersRepository.save(loggedInUser);
-        } catch (BadCredentialsException ex) {
+            log.info("User logged out successfully: userId={}", loggedInUser.getId());
+        } catch (JwtException | IllegalArgumentException | BadCredentialsException ex) {
             throw new AppException(
                     HttpStatus.UNAUTHORIZED,
                     HttpStatus.UNAUTHORIZED.getReasonPhrase(),
                     "Invalid token"
             );
         }
+    }
+
+    private String extractBearerToken(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ") || authHeader.length() <= 7) {
+            throw new BadCredentialsException("Invalid Authorization header");
+        }
+        return authHeader.substring(7).trim();
     }
 
 }

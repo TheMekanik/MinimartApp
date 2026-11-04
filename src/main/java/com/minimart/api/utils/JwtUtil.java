@@ -80,7 +80,7 @@ public class JwtUtil {
         Date expirationDate = new Date(now.getTime() + this.refreshExpiry);
 
         Users fetchedUser = (Users) authentication.getPrincipal();
-        refreshToken = Jwts.builder().issuer("bpiuniform").subject(fetchedUser.getUsername())
+        refreshToken = Jwts.builder().issuer("minimart").subject(fetchedUser.getUsername())
                 .claim("id", fetchedUser.getId())
                 .claim("username", fetchedUser.getUsername())
                 .claim("email", fetchedUser.getEmail())
