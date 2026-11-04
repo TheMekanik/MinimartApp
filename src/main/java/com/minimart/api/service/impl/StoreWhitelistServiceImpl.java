@@ -45,9 +45,9 @@ public class StoreWhitelistServiceImpl implements IStoreWhitelistService {
         }
 
 
-        StoreWhitelists existingWhitelist = whitelistRepository.findByStoreId(request.store_id());
+        boolean existingWhitelist = whitelistRepository.findByStoreId(request.store_id()).isPresent();
 
-        if (existingWhitelist != null) {
+        if (existingWhitelist) {
             throw new AppException(
                     HttpStatus.CONFLICT,
                     HttpStatus.CONFLICT.getReasonPhrase(),

@@ -115,3 +115,26 @@ CREATE TABLE IF NOT EXISTS store_whitelists (
 	UNIQUE unique_store_id (store_id),
 	CONSTRAINT fk_store_id FOREIGN KEY (store_id) REFERENCES stores (id)
 );
+
+CREATE TABLE IF NOT EXISTS audit_logs (
+	id BIGINT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+	action VARCHAR(20) NOT NULL,
+	resource VARCHAR(100) NOT NULL,
+	http_method VARCHAR(10) NOT NULL,
+	request_path VARCHAR(255) NOT NULL,
+	resource_id VARCHAR(100) DEFAULT NULL,
+	actor VARCHAR(100) NOT NULL,
+	request_id VARCHAR(100) NOT NULL,
+	status_code INT NOT NULL,
+	duration_ms BIGINT NOT NULL,
+	outcome VARCHAR(20) NOT NULL,
+	client_ip VARCHAR(45) DEFAULT NULL,
+	user_agent VARCHAR(500) DEFAULT NULL,
+	error_type VARCHAR(255) DEFAULT NULL,
+	created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+	KEY idx_audit_logs_actor (actor),
+	KEY idx_audit_logs_resource (resource, resource_id),
+	KEY idx_audit_logs_created_at (created_at),
+	KEY idx_audit_logs_request_id (request_id)
+);

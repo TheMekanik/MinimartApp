@@ -2,6 +2,7 @@ package com.minimart.api.security;
 
 import com.minimart.api.dto.ApiResponseDto;
 import com.minimart.api.filter.JWTTokenValidationFilter;
+import com.minimart.api.filter.AuditRequestLoggingFilter;
 import com.minimart.api.repository.UsersRepository;
 import com.minimart.api.utils.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +43,7 @@ public class SecurityConfig {
     private final ObjectMapper objectMapper;
     private final JwtUtil jwtUtil;
     private final UsersRepository usersRepository;
+    private final AuditRequestLoggingFilter auditRequestLoggingFilter;
     @Value("${minimart.cors.allowed-origins}")
     private String allowedOrigins;
 
@@ -70,6 +72,7 @@ public class SecurityConfig {
                     request.anyRequest().authenticated();
                 })
                 .addFilterBefore(new JWTTokenValidationFilter(publicPaths, jwtUtil, authenticationEntryPoint, usersRepository), BasicAuthenticationFilter.class)
+                .addFilterAfter(auditRequestLoggingFilter, JWTTokenValidationFilter.class)
                 .build();
     }
 
