@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
@@ -46,7 +45,7 @@ public class StoreController {
         );
     }
 
-    @PatchMapping("/{id}")
+    @PatchMapping("/delete-store/{id}")
     public ResponseEntity<ApiResponseDto<Void>> deleteStore(@PathVariable Long id) {
         storeService.deleteStore(id);
 

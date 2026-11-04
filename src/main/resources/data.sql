@@ -1,7 +1,7 @@
-INSERT INTO roles (id, role_name, created_at, updated_at) VALUES
+INSERT IGNORE INTO roles (id, role_name, created_at, updated_at) VALUES
 (1, 'ROLE_SUPER_ADMIN', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP());
 
-INSERT INTO permissions (id, permission_name, created_at, updated_at) VALUES
+INSERT IGNORE INTO permissions (id, permission_name, created_at, updated_at) VALUES
 (1, 'PROVINCE_VIEW', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP()),
 (2, 'PROVINCE_CREATE', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP()),
 (3, 'PROVINCE_UPDATE', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP()),
@@ -15,7 +15,7 @@ INSERT INTO permissions (id, permission_name, created_at, updated_at) VALUES
 (11, 'STORE_UPDATE', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP()),
 (12, 'STORE_DELETE', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP());
 
-INSERT INTO permission_roles (id, permission_id, role_id, created_at) VALUES
+INSERT IGNORE INTO permission_roles (id, permission_id, role_id, created_at) VALUES
 (1, 1, 1, CURRENT_TIMESTAMP()),
 (2, 2, 1, CURRENT_TIMESTAMP()),
 (3, 3, 1, CURRENT_TIMESTAMP()),
@@ -29,10 +29,10 @@ INSERT INTO permission_roles (id, permission_id, role_id, created_at) VALUES
 (11, 11, 1, CURRENT_TIMESTAMP()),
 (12, 12, 1, CURRENT_TIMESTAMP());
 
-INSERT INTO user_roles VALUES
+INSERT IGNORE INTO user_roles VALUES
 (1, 1, 1, CURRENT_TIMESTAMP());
 
-INSERT INTO provinces (id, name) VALUES
+INSERT IGNORE INTO provinces (id, name) VALUES
 (11, 'ACEH'),
 (12, 'SUMATERA UTARA'),
 (13, 'SUMATERA BARAT'),
@@ -71,7 +71,7 @@ INSERT INTO provinces (id, name) VALUES
 (94, 'PAPUA TENGAH'),
 (95, 'PAPUA PEGUNUNGAN');
 
-INSERT INTO branches (id, province_id, branch_code, branch_name, is_active)
+INSERT IGNORE INTO branches (id, province_id, branch_code, branch_name, is_active)
 VALUES
     (1, 11, 'BR-11-001', 'ACEH - BRANCH 01', 1),
     (2, 11, 'BR-11-002', 'ACEH - BRANCH 02', 1),
@@ -148,7 +148,7 @@ VALUES
     (73, 12, 'BR-12-001', 'SUMATERA UTARA - BRANCH 01', 1),
     (74, 12, 'BR-12-002', 'SUMATERA UTARA - BRANCH 02', 1);
 
-INSERT INTO stores (id, branch_id, store_name, store_code, is_active)
+INSERT IGNORE INTO stores (id, branch_id, store_name, store_code, is_active)
 VALUES
     (1, 1, 'ACEH - BRANCH 01 - STORE 01', 'ST-001-001', 1),
     (2, 1, 'ACEH - BRANCH 01 - STORE 02', 'ST-001-002', 1),
