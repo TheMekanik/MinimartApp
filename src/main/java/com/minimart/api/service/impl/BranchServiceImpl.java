@@ -16,6 +16,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -127,4 +128,26 @@ public class BranchServiceImpl implements IBranchService {
                 branchesDto, pagination
         );
     }
+
+    @Override
+    public BranchResponseDto getBranch(Long id) {
+        Branches branch = branchRepository.findById(id).orElseThrow(
+                () -> new AppException(
+                        HttpStatus.NOT_FOUND,
+                        HttpStatus.NOT_FOUND.getReasonPhrase(),
+                        "Branch data not found"
+                )
+        );
+
+        BranchResponseDto branchDto = new BranchResponseDto();
+        branchDto.setId(branch.getId());
+        branchDto.setBranch_code(branch.getBranchCode());
+        branchDto.setBranch_name(branch.getBranchName());
+        branchDto.setProvince_id(branch.getProvince().getId());
+        branchDto.setProvince_name(branch.getProvince().getName());
+        branchDto.setIs_active(branch.getIsActive());
+
+        return branchDto;
+    }
+
 }

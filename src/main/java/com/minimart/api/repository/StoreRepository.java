@@ -6,6 +6,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
+
 public interface StoreRepository extends JpaRepository<Stores, Long> {
 
     @Query("""
@@ -20,4 +22,14 @@ public interface StoreRepository extends JpaRepository<Stores, Long> {
             )
             """)
     Page<Stores> findActiveStores(Boolean isActive, String provinceName, Pageable pageable);
+
+
+    @Query("""
+            SELECT s 
+            FROM Stores s
+            WHERE s.deletedAt IS NULL
+            AND s.isActive = true
+            AND s.branch.id = :branchId
+            """)
+    List<Stores> findActiveStoresByBranchId(Long branchId);
 }

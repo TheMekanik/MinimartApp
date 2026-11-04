@@ -39,6 +39,10 @@ public class UsernamePwdAuthenticationProvider implements AuthenticationProvider
                 )
         );
 
+        if (!passwordEncoder.matches(pwd, users.getPassword())) {
+            throw new BadCredentialsException("Invalid Password");
+        }
+
         Set<Roles> roles = users.getRoles();
         Set<GrantedAuthority> authoritiesSet = new HashSet<>();
 
@@ -52,11 +56,7 @@ public class UsernamePwdAuthenticationProvider implements AuthenticationProvider
 
         List<GrantedAuthority> authorities = new ArrayList<>(authoritiesSet);
 
-        if (passwordEncoder.matches(pwd, users.getPassword())) {
-            return new UsernamePasswordAuthenticationToken(users,null,authorities);
-        } else {
-            throw new BadCredentialsException("Invalid Password");
-        }
+        return new UsernamePasswordAuthenticationToken(users,null,authorities);
     }
 
     @Override

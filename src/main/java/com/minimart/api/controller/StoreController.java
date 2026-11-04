@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -20,6 +21,7 @@ public class StoreController {
     private final IStoreService storeService;
 
     @PostMapping("")
+    @PreAuthorize("hasAuthority('STORE_CREATE')")
     public ResponseEntity<ApiResponseDto<Void>> createStore(@Valid @RequestBody StoreRequestDto request) {
         storeService.createStore(request);
 
@@ -33,6 +35,7 @@ public class StoreController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('STORE_UPDATE')")
     public ResponseEntity<ApiResponseDto<Void>> updateStore(@PathVariable Long id, @Valid @RequestBody StoreRequestDto request) {
         storeService.updateStore(id, request);
 
@@ -46,6 +49,7 @@ public class StoreController {
     }
 
     @PatchMapping("/delete-store/{id}")
+    @PreAuthorize("hasAuthority('STORE_DELETE')")
     public ResponseEntity<ApiResponseDto<Void>> deleteStore(@PathVariable Long id) {
         storeService.deleteStore(id);
 
@@ -59,6 +63,7 @@ public class StoreController {
     }
 
     @GetMapping("")
+    @PreAuthorize("hasAuthority('STORE_VIEW')")
     public ResponseEntity<ApiResponseDto<List<StoreResponseDto>>> getStores(
             @RequestParam(defaultValue = "1") int pageNumber,
             @RequestParam(defaultValue = "10") int pageSize,
@@ -79,6 +84,7 @@ public class StoreController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('STORE_VIEW')")
     public ResponseEntity<ApiResponseDto<StoreResponseDto>> getStore(Long id) {
         StoreResponseDto storeDto = storeService.getStore(id);
 

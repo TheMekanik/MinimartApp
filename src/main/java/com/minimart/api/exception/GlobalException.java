@@ -6,6 +6,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -39,10 +40,10 @@ public class GlobalException {
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .toList();
 
-        return ResponseEntity.ok().body(
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
                 ApiResponseDto.<List<String>>builder()
                         .code(HttpStatus.BAD_REQUEST.value())
-                        .message(HttpStatus.BAD_GATEWAY.getReasonPhrase())
+                        .message(HttpStatus.BAD_REQUEST.getReasonPhrase())
                         .data(errors)
                         .build()
         );
@@ -52,7 +53,7 @@ public class GlobalException {
     public ResponseEntity<ApiResponseDto<Void>> handleInvalidRequestFormat(
             HttpMessageNotReadableException ex
     ) {
-        return ResponseEntity.ok().body(
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
                 ApiResponseDto.<Void>builder()
                         .code(HttpStatus.BAD_REQUEST.value())
                         .message(HttpStatus.BAD_REQUEST.getReasonPhrase())
@@ -65,11 +66,24 @@ public class GlobalException {
     public ResponseEntity<ApiResponseDto<Void>> handleDatabaseException(
             DataIntegrityViolationException ex
     ) {
-        return ResponseEntity.ok().body(
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(
                 ApiResponseDto.<Void>builder()
                         .code(HttpStatus.CONFLICT.value())
                         .message("Data conflict or constraint violation")
                         .details(ex.getMessage())
+                        .build()
+        );
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiResponseDto<Void>> handleAccessDeniesException(
+            AccessDeniedException ex
+    ) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                ApiResponseDto.<Void>builder()
+                        .code(HttpStatus.FORBIDDEN.value())
+                        .message(ex.getMessage())
+                        .details("You dont have a permission to access this resource")
                         .build()
         );
     }

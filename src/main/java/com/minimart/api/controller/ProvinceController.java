@@ -6,6 +6,7 @@ import com.minimart.api.service.IProvinceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,6 +22,7 @@ public class ProvinceController {
     private final IProvinceService provinceService;
 
     @GetMapping("")
+    @PreAuthorize("hasAuthority('PROVINCE_VIEW')")
     public ResponseEntity<ApiResponseDto<List<ProvinceResponseDto>>> getProvinces() {
         List<ProvinceResponseDto> provinces = provinceService.getProvinces();
 
@@ -35,6 +37,7 @@ public class ProvinceController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('PROVINCE_VIEW')")
     public ResponseEntity<ApiResponseDto<ProvinceResponseDto>> getProvince(@PathVariable Long id) {
         ProvinceResponseDto province = provinceService.getProvince(id);
 

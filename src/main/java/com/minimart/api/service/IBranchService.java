@@ -16,4 +16,6 @@ public interface IBranchService {
     void deleteBranch(Long id);
 
     BranchesResponseDto getBranches(int pageNumber, int pageSize, Boolean isActive);
+
+    BranchResponseDto getBranch(Long id);
 }

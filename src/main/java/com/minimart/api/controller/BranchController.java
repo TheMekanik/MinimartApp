@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,6 +22,7 @@ public class BranchController {
     private final IBranchService branchService;
 
     @PostMapping("")
+    @PreAuthorize("hasAuthority('BRANCH_CREATE')")
     public ResponseEntity<ApiResponseDto<Void>> createBranch(BranchRequestDto request) {
         branchService.createBranch(request);
 
@@ -34,6 +36,7 @@ public class BranchController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('BRANCH_UPDATE')")
     public ResponseEntity<ApiResponseDto<Void>> updateBranch(@PathVariable Long id, @Valid @RequestBody BranchRequestDto request) {
         branchService.updateBranch(id, request);
 
@@ -47,6 +50,7 @@ public class BranchController {
     }
 
     @PatchMapping("/delete-branch/{id}")
+    @PreAuthorize("hasAuthority('BRANCH_DELETE')")
     public ResponseEntity<ApiResponseDto<Void>> deleteBranch(@PathVariable Long id) {
         branchService.deleteBranch(id);
 
@@ -60,6 +64,7 @@ public class BranchController {
     }
 
     @GetMapping("")
+    @PreAuthorize("hasAuthority('BRANCH_VIEW')")
     public ResponseEntity<ApiResponseDto<List<BranchResponseDto>>> getBranches(
             @RequestParam(defaultValue = "1") int pageNumber,
             @RequestParam(defaultValue = "10") int pageSize,
@@ -78,5 +83,19 @@ public class BranchController {
         );
     }
 
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAuthority('BRANCH_VIEW')")
+    public ResponseEntity<ApiResponseDto<BranchResponseDto>> getBranch(Long id) {
 
+        BranchResponseDto branch = branchService.getBranch(id);
+
+        return ResponseEntity.ok().body(
+                ApiResponseDto.<BranchResponseDto>builder()
+                        .code(HttpStatus.OK.value())
+                        .message(HttpStatus.OK.getReasonPhrase())
+                        .details("Get branch successful")
+                        .data(branch)
+                        .build()
+        );
+    }
 }
