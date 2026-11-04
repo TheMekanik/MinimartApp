@@ -25,7 +25,7 @@ public class StoreController {
     public ResponseEntity<ApiResponseDto<Void>> createStore(@Valid @RequestBody StoreRequestDto request) {
         storeService.createStore(request);
 
-        return ResponseEntity.ok().body(
+        return ResponseEntity.status(HttpStatus.CREATED).body(
                 ApiResponseDto.<Void>builder()
                         .code(HttpStatus.CREATED.value())
                         .message(HttpStatus.CREATED.getReasonPhrase())
@@ -53,7 +53,7 @@ public class StoreController {
     public ResponseEntity<ApiResponseDto<Void>> deleteStore(@PathVariable Long id) {
         storeService.deleteStore(id);
 
-        return ResponseEntity.ok().body(
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(
                 ApiResponseDto.<Void>builder()
                         .code(HttpStatus.NO_CONTENT.value())
                         .message(HttpStatus.NO_CONTENT.getReasonPhrase())

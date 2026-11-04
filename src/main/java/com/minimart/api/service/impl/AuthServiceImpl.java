@@ -179,6 +179,11 @@ public class AuthServiceImpl implements IAuthService {
                     () -> new AppException(HttpStatus.UNAUTHORIZED, HttpStatus.UNAUTHORIZED.getReasonPhrase(), "Invalid token")
             );
 
+            if (loggedInUser.getDeletedAt() != null
+                    || !jwt.equals(loggedInUser.getAccessToken())) {
+                throw new BadCredentialsException("Invalid token");
+            }
+
             loggedInUser.setAccessToken(null);
             loggedInUser.setRefreshToken(null);
             loggedInUser.setRefreshTokenExpiry(null);

@@ -1,6 +1,8 @@
 package com.minimart.api.filter;
 
 import com.minimart.api.entity.Users;
+import com.minimart.api.entity.Permissions;
+import com.minimart.api.entity.Roles;
 import com.minimart.api.repository.UsersRepository;
 import com.minimart.api.utils.JwtUtil;
 import io.jsonwebtoken.Claims;
@@ -49,8 +51,6 @@ public class JWTTokenValidationFilter extends OncePerRequestFilter {
                 Claims claims = Jwts.parser().verifyWith(jwtUtil.getSecretKey()).build().parseSignedClaims(jwt).getPayload();
 
                 String username = claims.getSubject();
-                List<String> roles = claims.get("roles", List.class);
-                List<String> permissions = claims.get("permissions", List.class);
                 Long id = claims.get("id", Long.class);
                 if (username == null || id == null || !"minimart".equals(claims.getIssuer())) {
                     throw new BadCredentialsException("Required token claims are missing");
@@ -68,12 +68,11 @@ public class JWTTokenValidationFilter extends OncePerRequestFilter {
 
                 List<GrantedAuthority> authorities = new ArrayList<>();
 
-                if (roles != null) {
-                    roles.forEach(role -> authorities.add(new SimpleGrantedAuthority(role))); // kontrak authority
-                }
-
-                if (permissions != null) {
-                    permissions.forEach(perm -> authorities.add(new SimpleGrantedAuthority(perm)));
+                for (Roles role : user.getRoles()) {
+                    authorities.add(new SimpleGrantedAuthority(role.getRoleName()));
+                    for (Permissions permission : role.getPermissions()) {
+                        authorities.add(new SimpleGrantedAuthority(permission.getPermissionName()));
+                    }
                 }
 
                 Authentication authentication = new UsernamePasswordAuthenticationToken(username, null, authorities);

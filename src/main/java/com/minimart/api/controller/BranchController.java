@@ -26,7 +26,7 @@ public class BranchController {
     public ResponseEntity<ApiResponseDto<Void>> createBranch(@Valid @RequestBody BranchRequestDto request) {
         branchService.createBranch(request);
 
-        return ResponseEntity.ok().body(
+        return ResponseEntity.status(HttpStatus.CREATED).body(
                 ApiResponseDto.<Void>builder()
                         .code(HttpStatus.CREATED.value())
                         .message(HttpStatus.CREATED.getReasonPhrase())
@@ -54,7 +54,7 @@ public class BranchController {
     public ResponseEntity<ApiResponseDto<Void>> deleteBranch(@PathVariable Long id) {
         branchService.deleteBranch(id);
 
-        return ResponseEntity.ok().body(
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(
                 ApiResponseDto.<Void>builder()
                         .code(HttpStatus.NO_CONTENT.value())
                         .message(HttpStatus.NO_CONTENT.getReasonPhrase())

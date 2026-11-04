@@ -1,3 +1,6 @@
+INSERT IGNORE INTO users (id, username, password, email, created_at, updated_at) VALUES
+(1, 'Superadmin', '$2b$12$CWwvcu.xrA2gvgSVd8Cu3O6WmynREg.p/X4oca18XeA6gKDjI8WaS', 'mamangadmin@gmail.com', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP());
+
 INSERT IGNORE INTO roles (id, role_name, created_at, updated_at) VALUES
 (1, 'ROLE_SUPER_ADMIN', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP());
 
