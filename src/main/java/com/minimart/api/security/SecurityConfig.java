@@ -1,6 +1,6 @@
 package com.minimart.api.security;
 
-import com.minimart.api.dto.ErrorResponseDto;
+import com.minimart.api.dto.ApiResponseDto;
 import com.minimart.api.filter.JWTTokenValidationFilter;
 import com.minimart.api.repository.UsersRepository;
 import com.minimart.api.utils.JwtUtil;
@@ -68,20 +68,34 @@ public class SecurityConfig {
     }
 
     @Bean
+    public AuthenticationEntryPoint authenticationEntryPoint() {
+        return (request, response, authException) -> {
+           response.setStatus(HttpStatus.UNAUTHORIZED.value());
+           response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+
+           objectMapper.writeValue(
+                   response.getOutputStream(),
+                   ApiResponseDto.<Void>builder()
+                           .code(HttpStatus.UNAUTHORIZED.value())
+                           .message(HttpStatus.UNAUTHORIZED.getReasonPhrase())
+                           .details("Access not granted")
+                           .build()
+           );
+        };
+    }
+
+    @Bean
     public AccessDeniedHandler accessDeniedHandler() {
         return (request, response, accessDeniedException) -> {
-            ErrorResponseDto errorResponseDto = new ErrorResponseDto(
-                    HttpStatus.FORBIDDEN.value(),
-                    HttpStatus.FORBIDDEN.getReasonPhrase(),
-                    "Akses dilarang"
-            );
-
             response.setStatus(HttpStatus.FORBIDDEN.value());
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
             objectMapper.writeValue(
                     response.getOutputStream(),
-                    errorResponseDto
+                    ApiResponseDto.<Void>builder()
+                            .code(HttpStatus.FORBIDDEN.value())
+                            .message(HttpStatus.FORBIDDEN.getReasonPhrase())
+                            .message("Access forbidden")
             );
         };
     }

@@ -46,7 +46,7 @@ public class JWTTokenValidationFilter extends OncePerRequestFilter {
                 String username = claims.getSubject();
                 List<String> roles = claims.get("roles", List.class);
                 List<String> permissions = claims.get("permissions", List.class);
-                Long id = (Long) claims.get("id");
+                Long id = claims.get("id", Long.class);
 
                 Users user = usersRepository.findById(id).orElseThrow(null);
 
@@ -69,13 +69,13 @@ public class JWTTokenValidationFilter extends OncePerRequestFilter {
 
             } catch (ExpiredJwtException exception) {
                 authenticationEntryPoint.commence(
-                        request, response, new BadCredentialsException("Token kadaluarsa", exception)
+                        request, response, new BadCredentialsException("Token expired", exception)
                 );
 
                 return;
             } catch (Exception exception) {
                 authenticationEntryPoint.commence(
-                        request, response, new BadCredentialsException("Token tidak valid", exception)
+                        request, response, new BadCredentialsException("Token invalid", exception)
                 );
                 return;
             }

@@ -62,19 +62,22 @@ public class AuthServiceImpl implements IAuthService {
                 .filter(auth -> !auth.startsWith("ROLE_"))
                 .toList();
 
+        dto.setUser_id(user.getId());
         dto.setRoles(roles);
         dto.setPermissions(permissions);
 
         String accessToken = jwtUtil.generateJwtToken(authentication);
         String refreshToken = jwtUtil.generateRefreshToken(authentication);
 
+        dto.setAccess_token(accessToken);
+        dto.setRefresh_token(refreshToken);
+
         user.setAccessToken(accessToken);
         user.setRefreshToken(refreshToken);
         user.setRefreshTokenExpiry(Instant.now().plusMillis(jwtUtil.getRefreshExpiry()));
         user.setLastLoginAt(Instant.now());
 
-        dto.setAccess_token(accessToken);
-        dto.setRefresh_token(refreshToken);
+        usersRepository.save(user);
 
         return dto;
     }
@@ -144,6 +147,7 @@ public class AuthServiceImpl implements IAuthService {
     @Override
     public void logout(HttpServletRequest request) {
         try {
+            System.out.println("Im hit");
             String authHeader = request.getHeader("Authorization");
             String jwt = authHeader.substring(7);
 

@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS provinces (
-	id INT(2) PRIMARY KEY NOT NULL
+	id INT(2) PRIMARY KEY NOT NULL,
 	name VARCHAR(100) NOT NULL,
 	UNIQUE KEY province_name (name)
 );
@@ -52,8 +52,8 @@ CREATE TABLE IF NOT EXISTS users (
 	username VARCHAR(100) NOT NULL,
 	password VARCHAR(255) NOT NULL,
 	email VARCHAR(50) NOT NULL,
-	access_token VARCHAR(255) DEFAULT NULL,
-	refresh_token VARCHAR(255) DEFAULT NULL,
+	access_token TEXT DEFAULT NULL,
+	refresh_token TEXT DEFAULT NULL,
 	refresh_token_expiry TIMESTAMP DEFAULT NULL,
 	last_login_at TIMESTAMP DEFAULT NULL,
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
