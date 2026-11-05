@@ -92,6 +92,21 @@ curl http://localhost:8080/api/v1/province \
 
 Refresh and logout endpoints:
 
+- Refresh the access token by sending the refresh token in the request body:
+
+```bash
+curl -X POST http://localhost:8080/api/v1/auth/refresh-token \
+  -H "Content-Type: application/json" \
+  -d "{\"refresh_token\":\"<refresh-token>\"}"
+```
+
+- Use the returned token in the request header, for example:
+
+```bash
+curl http://localhost:8080/api/v1/province \
+  -H "Authorization: Bearer <access-token>"
+```
+
 - `POST /api/v1/auth/refresh-token`
 - `GET /api/v1/auth/logout`
 
@@ -136,6 +151,13 @@ and timestamp. Authentication endpoints are excluded from this resource audit
 filter. Passwords, JWTs, and request bodies are not stored.
 
 ## Run tests
+
+Start MySQL first so the Spring context test can connect to the configured
+database:
+
+```bash
+docker compose up -d mysql
+```
 
 Run the complete test suite using the Maven Wrapper:
 
@@ -205,3 +227,4 @@ is needed:
 docker compose down -v
 docker compose up --build
 ```
+

@@ -3,6 +3,7 @@ package com.minimart.api.controller;
 import com.minimart.api.dto.ApiResponseDto;
 import com.minimart.api.dto.auth.LoginRequestDto;
 import com.minimart.api.dto.auth.LoginResponseDto;
+import com.minimart.api.dto.auth.RefreshTokenRequestDto;
 import com.minimart.api.dto.auth.RefreshTokenResponseDto;
 import com.minimart.api.service.IAuthService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -34,7 +35,8 @@ public class AuthController {
     }
 
     @PostMapping("/refresh-token")
-    public ResponseEntity<ApiResponseDto<RefreshTokenResponseDto>> refreshToken(HttpServletRequest request) {
+    public ResponseEntity<ApiResponseDto<RefreshTokenResponseDto>> refreshToken(
+            @Valid @RequestBody RefreshTokenRequestDto request) {
 
         RefreshTokenResponseDto newToken = authService.refreshToken(request);
 

@@ -2,6 +2,7 @@ package com.minimart.api.service.impl;
 
 import com.minimart.api.dto.auth.LoginRequestDto;
 import com.minimart.api.dto.auth.LoginResponseDto;
+import com.minimart.api.dto.auth.RefreshTokenRequestDto;
 import com.minimart.api.dto.auth.RefreshTokenResponseDto;
 import com.minimart.api.entity.Permissions;
 import com.minimart.api.entity.Roles;
@@ -95,11 +96,11 @@ public class AuthServiceImpl implements IAuthService {
 
     @Override
     @Transactional
-    public RefreshTokenResponseDto refreshToken(HttpServletRequest request) {
+    public RefreshTokenResponseDto refreshToken(RefreshTokenRequestDto request) {
         try {
-            String jwt = extractBearerToken(request);
+            String refreshToken = request.refresh_token();
 
-            Claims claims = Jwts.parser().verifyWith(jwtUtil.getSecretKey()).build().parseSignedClaims(jwt).getPayload();
+            Claims claims = Jwts.parser().verifyWith(jwtUtil.getSecretKey()).build().parseSignedClaims(refreshToken).getPayload();
             Long id = claims.get("id", Long.class);
             if (id == null || !"minimart".equals(claims.getIssuer())) {
                 throw new AppException(
@@ -117,7 +118,7 @@ public class AuthServiceImpl implements IAuthService {
 
             if (existingUser.getDeletedAt() != null
                     || existingRefreshToken == null
-                    || !existingRefreshToken.equals(jwt)
+                    || !existingRefreshToken.equals(refreshToken)
                     || existingUser.getRefreshTokenExpiry() == null
                     || existingUser.getRefreshTokenExpiry().isBefore(Instant.now())) {
                 existingUser.setRefreshToken(null);
