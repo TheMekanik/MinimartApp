@@ -66,7 +66,7 @@ The seed data creates the following account:
 
 ```text
 Username: Superadmin
-Password: bismillah
+Password: @technicaltest_2026
 ```
 
 The seeded account has the permissions required to access the protected
@@ -80,7 +80,7 @@ the login endpoint.
 ```bash
 curl -X POST http://localhost:8080/api/v1/auth/login \
   -H "Content-Type: application/json" \
-  -d "{\"username\":\"Superadmin\",\"password\":\"bismillah\"}"
+  -d "{\"username\":\"Superadmin\",\"password\":\"@technicaltest_2026\"}"
 ```
 
 Use the returned access token as a Bearer token:
