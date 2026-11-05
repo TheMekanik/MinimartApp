@@ -36,6 +36,10 @@ services:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/minimartdb
+      SPRING_DATASOURCE_USERNAME: TheMekanik
+      SPRING_DATASOURCE_PASSWORD: technicaltest_2026
+      MINIMART_CORS_ALLOWED_ORIGINS: http://localhost:5173
     ports:
       - "8080:8080"
 
